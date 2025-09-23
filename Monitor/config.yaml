@@ -1,0 +1,4 @@
+delay: 5
+max_loss_multiplier: 10
+trailing_profit_multiplier: 3
+trail_profit_threshold: 3

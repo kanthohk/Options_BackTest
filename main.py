@@ -1,103 +1,141 @@
-from kiteconnect import KiteConnect
-import pandas as pd
-from datetime import datetime, timedelta
-import numpy as np
-import matplotlib.pyplot as plt
+from flask import Flask, request, jsonify
+import yaml
+from TradingBroker.kite_api_bot import KITE_CONNECT
+from MarketAnalysis.fetch_data import get_ltp, get_option_chain
+# Create Flask app
+app = Flask(__name__)
+broker_connections = {}
 
-# ---- Config ----
-api_key = "your_api_key"
-api_secret = "your_api_secret"
-access_token = "your_access_token"   # refresh daily
-kite = KiteConnect(api_key=api_key)
-kite.set_access_token(access_token)
+# Home route
+@app.route("/")
+def home():
+    return "Welcome to my small financial app ..."
 
-LOT_SIZE = 75
-CAPITAL_PER_LOT = 150000
-STRIKE_PCT = 0.03   # 3% OTM
-OPEN_TIME = "09:20:00"
-CLOSE_TIME = "15:25:00"
+def get_credentials():
+    with open("TradingBroker/config.yaml", "r") as file:
+        config = yaml.safe_load(file)
+    return config["credentials"]
 
-# ---- Helper to get instrument token ----
-def get_instrument_token(symbol, expiry, strike, option_type):
-    insts = kite.instruments("NFO")   # list of all NSE F&O instruments
-    expiry_str = expiry.strftime("%Y-%m-%d")
-    for inst in insts:
-        if (inst["name"] == "NIFTY" and
-            inst["expiry"].strftime("%Y-%m-%d") == expiry_str and
-            inst["strike"] == strike and
-            inst["instrument_type"] == option_type):
-            return inst["instrument_token"]
-    return None
+# Example API: greet user
+#@app.route("/get_broker", methods=["GET"])
+def get_broker(user):
+    global broker_connections
+    #name = request.args.get("name")
+    credentials = get_credentials()
+    if not user or not user in credentials:
+        return [False, "Either user or his credentials are missing"]
+    #
+    kc = KITE_CONNECT(user, credentials.get(user))
+    if kc:
+        broker_connections[user]= kc
+        return [True, "Got Connection successfully"]
+    else:
+        return [False, "Failed to get connection"]
 
-# ---- Get open/close price from Kite historical data ----
-def get_open_close(token, date):
-    from_date = to_date = date.strftime("%Y-%m-%d")
-    data = kite.historical_data(token, from_date, to_date, "5minute")  # 5-min candles
-    df = pd.DataFrame(data)
-    if df.empty:
-        return None, None
-    df["date"] = pd.to_datetime(df["date"])
-    open_row = df[df["date"].dt.strftime("%H:%M:%S") == OPEN_TIME]
-    close_row = df[df["date"].dt.strftime("%H:%M:%S") == CLOSE_TIME]
-    if open_row.empty or close_row.empty:
-        return None, None
-    return float(open_row["close"].iloc[0]), float(close_row["close"].iloc[0])
+@app.route("/get_orders", methods=["GET"])
+def get_orders():
+    global broker_connections
+    user = request.args.get("user")
+    orders = {}
+    try:
+        if user:
+            if not user in broker_connections:
+                get_broker(user)
+            orders[user] = broker_connections[user].fetch_orders()
+        else:
+            for user in broker_connections:
+                orders[user] = broker_connections[user].fetch_orders()
+        return [True, orders]
+    except Exception as e:
+        print(f"Failed to get orders with error: {e}")
+        return [False, f"Failed to get orders with error: {e}"]
+@app.route("/get_positions", methods=["GET"])
+def get_positions():
+    global broker_connections
+    positions = {}
+    try:
+        user = request.args.get("user")
+        print(f"Trying to get positions for user {user}")
+        positions = {}
+        if user:
+            if not user in broker_connections:
+                print(f"Get the broker connection for {user}...")
+                get_broker(user)
+            positions[user] =  broker_connections[user].fetch_optoin_positions()
+        else:
+            for user in broker_connections:
+                positions[user] = broker_connections[user].fetch_optoin_positions()
+        return [True, positions]
+    except Exception as e:
+        print(f"Failed to get orders with error: {e}")
+        return [False, f"Failed to get orders with error: {e}"]
+# Example API: add numbers
+@app.route("/watch_positions", methods=["GET"])
+def watch_positions():
+    user = request.args.get("user")
+    watch = {}
+    if user:
+        with open("Monitor/watch_sync.yaml", "r") as file:
+            watch = yaml.safe_load(file)
+            if not watch:
+                watch = {}
+        with open("Monitor/watch_sync.yaml", "w") as file:
+            watch[user] = {"type": "options"}
+            yaml.dump(watch, file, default_flow_style=False, sort_keys=False)
+    else:
+        return [False, f"Please provide the user to watch"]
+    return [True, f"Started watching the position of {user}"]
+@app.route("/stop_watch_positions", methods=["GET"])
+def stop_watch_positions():
+    user = request.args.get("user")
+    watch = {}
+    if user:
+        with open("Monitor/watch_sync.yaml", "r") as file:
+            watch = yaml.safe_load(file)
+        with open("Monitor/watch_sync.yaml", "w") as file:
+            del watch[user]
+            yaml.dump(watch, file, default_flow_style=False, sort_keys=False)
+    else:
+        return [False, f"Please provide the user to watch"]
+    return [True, f"Stopped watching the position of {user}"]
 
-# ---- Run backtest ----
-def run_backtest(start_date, end_date):
-    results = []
-    current = start_date
-    while current <= end_date:
-        try:
-            # Get spot Nifty
-            spot = kite.quote("NSE:NIFTY 50")["NSE:NIFTY 50"]["last_price"]
-            # Find nearest monthly expiry
-            insts = kite.instruments("NFO")
-            exp_dates = sorted(list({i["expiry"] for i in insts if i["name"]=="NIFTY"}))
-            expiry = [e for e in exp_dates if e > current][0]
+@app.route("/get_current_price", methods=["GET"])
+def get_current_price():
+    symbol = request.args.get("symbol")
+    request_type = request.args.get("request_type")
+    ltp = get_ltp(symbol=symbol, request_type=request_type)
+    if ltp:
+        return [True, ltp]
+    else:
+        return [False, None]
 
-            # Strikes
-            ce_strike = round(spot * (1 + STRIKE_PCT) / 50) * 50
-            pe_strike = round(spot * (1 - STRIKE_PCT) / 50) * 50
+@app.route("/get_optionchain", methods=["GET"])
+def get_optionchain():
+    symbol = request.args.get("symbol")
+    op_chain = get_option_chain(symbol=symbol)
+    if op_chain:
+        return [True, op_chain]
+    else:
+        return [False, None]
 
-            # Tokens
-            ce_token = get_instrument_token("NIFTY", expiry, ce_strike, "CE")
-            pe_token = get_instrument_token("NIFTY", expiry, pe_strike, "PE")
-            if not ce_token or not pe_token:
-                current += timedelta(days=1)
-                continue
+@app.route("/place_order", methods=["GET"])
+def place_order():
+    user = request.args.get("user")
+    symbol = request.args.get("symbol")
+    quantity = request.args.get("quantity")
+    transaction_type = request.args.get("transaction_type")
+    try:
+        if user:
+            if not user in broker_connections:
+                get_broker(user)
+            order_id = broker_connections[user].place_order(symbol=symbol, quantity=quantity, transaction_type=transaction_type)
+            return [True, f"Order is placed successfully:{order_id}"]
+        else:
+            raise Exception(f"User cannot be null")
+    except Exception as e:
+        print(f"Failed to place order with error: {e}")
+        return [False, f"Failed to place order with error: {e}"]
 
-            # Prices
-            ce_open, ce_close = get_open_close(ce_token, current)
-            pe_open, pe_close = get_open_close(pe_token, current)
-            if ce_open is None or pe_open is None:
-                current += timedelta(days=1)
-                continue
-
-            # P&L per leg
-            pl_ce = ce_open - ce_close
-            pl_pe = pe_open - pe_close
-            pl_total = (pl_ce + pl_pe) * LOT_SIZE
-
-            results.append({
-                "date": current,
-                "spot": spot,
-                "ce_strike": ce_strike,
-                "pe_strike": pe_strike,
-                "pl": pl_total
-            })
-        except Exception as e:
-            print(f"Error on {current}: {e}")
-        current += timedelta(days=1)
-
-    return pd.DataFrame(results)
-
-# ---- Example usage ----
-start = datetime(2024, 1, 1)
-end   = datetime(2024, 12, 31)
-df = run_backtest(start, end)
-
-print(df.describe())
-df["cum_pl"] = df["pl"].cumsum()
-df.set_index("date")["cum_pl"].plot(title="Equity Curve", figsize=(10,5))
-plt.show()
+# Run the app
+if __name__ == "__main__":
+    app.run(debug=True, port=5000)
