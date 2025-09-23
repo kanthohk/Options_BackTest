@@ -1,33 +1,72 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
   <component name="ChangeListManager">
-    <list default="true" id="68a4bfdb-c5e2-4de8-94f7-0cc53743c698" name="Changes" comment="" />
+    <list default="true" id="68a4bfdb-c5e2-4de8-94f7-0cc53743c698" name="Changes" comment="Changes">
+      <change afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/BackTesting/ETF BackTesting - Nifty50.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/BackTesting/back_test.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/BackTesting/cashflow.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/BackTesting/nifty_back_test.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/MarketAnalysis/fetch_data.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Monitor/config.yaml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Monitor/options.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Monitor/watch_sync.yaml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Strategies/my_strangle.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/TradingBroker/config.yaml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/TradingBroker/kite_api_bot.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="Git.Settings">
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$" value="9a18083d477aff45b7c1bcce53b3c3bb73056fbb" />
+      </map>
+    </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
-  <component name="ProjectColorInfo"><![CDATA[{
-  "associatedIndex": 1
-}]]></component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 1
+}</component>
   <component name="ProjectId" id="32luNmNv5J0LsAIkeFRsQc2RvCz" />
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "git-widget-placeholder": "master"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Python.main.executor&quot;: &quot;Run&quot;,
+    &quot;Python.nifty_back_test.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;Changes1&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/sarepalli/Documents/MyPythonProjects/OptionsTrading/pythonProject/Monitor&quot;
   }
-}]]></component>
+}</component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\sarepalli\Documents\MyPythonProjects\OptionsTrading\pythonProject\Monitor" />
+      <recent name="C:\Users\sarepalli\Documents\MyPythonProjects\OptionsTrading\pythonProject\TradingBroker" />
+      <recent name="C:\Users\sarepalli\Documents\MyPythonProjects\OptionsTrading\pythonProject" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\sarepalli\Documents\MyPythonProjects\OptionsTrading\pythonProject\TradingBroker" />
+      <recent name="C:\Users\sarepalli\Documents\MyPythonProjects\OptionsTrading\pythonProject\Strategies" />
+      <recent name="C:\Users\sarepalli\Documents\MyPythonProjects\OptionsTrading\pythonProject\BackTesting" />
+    </key>
+  </component>
   <component name="RunManager">
-    <configuration name="main" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
+    <configuration name="back_test" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
       <module name="pythonProject" />
       <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -40,7 +79,7 @@
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/main.py" />
+      <option name="SCRIPT_NAME" value="C:\Users\sarepalli\Documents\MyPythonProjects\OptionsTrading\pythonProject\BackTesting\back_test.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -66,13 +105,46 @@
       <option name="presentableId" value="Default" />
       <updated>1758007442291</updated>
     </task>
+    <task id="LOCAL-00001" summary="Initial version">
+      <option name="closed" value="true" />
+      <created>1758007760936</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1758007760936</updated>
+    </task>
+    <task id="LOCAL-00002" summary="Changes">
+      <option name="closed" value="true" />
+      <created>1758035960699</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1758035960699</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="Initial version" />
+    <MESSAGE value="Changes" />
+    <option name="LAST_COMMIT_MESSAGE" value="Changes" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
       <breakpoints>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/main.py</url>
+          <url>file://$PROJECT_DIR$/Monitor/options.py</url>
           <line>8</line>
           <option name="timeStamp" value="1" />
         </line-breakpoint>
