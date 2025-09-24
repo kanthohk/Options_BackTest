@@ -2,7 +2,7 @@ import requests
 import time
 
 
-def get_ltp(symbol, request_type='stock', max_retries=3, delay=1):
+def get_ltp(symbol, request_type='stock', max_retries=5, delay=1):
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
                       "AppleWebKit/537.36 (KHTML, like Gecko) "
@@ -26,14 +26,7 @@ def get_ltp(symbol, request_type='stock', max_retries=3, delay=1):
             resp = session.get(api_url, headers=headers, timeout=5)
             if resp.status_code == 200:
                 data = resp.json()
-                if request_type == 'stock':
-                    for idx in data["data"]:
-                        if idx["index"].lower() == symbol.lower():
-                            return float(idx["last"])
-                    print(f"{symbol} not found in response.")
-                    return None
-                else:
-                    return data
+                return data
             else:
                 print(f"Attempt {attempt}: Response code {resp.status_code}. Retrying...")
                 time.sleep(1.5*attempt)

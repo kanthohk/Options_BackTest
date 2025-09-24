@@ -1,0 +1,36 @@
+2025-09-24 15:25:33,973 - Thread-2 (run_user) - INFO - ####################################################################################################
+2025-09-24 15:25:33,973 - Thread-2 (run_user) - INFO - Started to Watch user: madhu
+2025-09-24 15:25:53,522 - Thread-2 (run_user) - INFO - Received 7 positions, processing them
+2025-09-24 15:25:57,031 - Thread-2 (run_user) - INFO - Received Option Chain ...True
+2025-09-24 15:25:57,031 - Thread-2 (run_user) - INFO - Loaded 2 active positions & 5 closed positions.
+2025-09-24 15:25:57,031 - Thread-2 (run_user) - INFO - Strategy Identified as : strangle
+2025-09-24 15:25:57,031 - Thread-2 (run_user) - INFO - -------------------------
+2025-09-24 15:25:57,031 - Thread-2 (run_user) - INFO - Stop loss check ...
+2025-09-24 15:26:00,411 - Thread-2 (run_user) - INFO - Base_factor: 1.2, VIX_factor: 0.9, SL Factor: 1.18
+2025-09-24 15:26:00,411 - Thread-2 (run_user) - INFO - Premium Collected: 26.95, Premium Earned: 25.15, StopLoss Premium: 31.8
+2025-09-24 15:26:00,411 - Thread-2 (run_user) - INFO - -------------------------
+2025-09-24 15:26:00,411 - Thread-2 (run_user) - INFO - Trail profit ...
+2025-09-24 15:26:00,411 - Thread-2 (run_user) - INFO - NIFTY25SEP24700PE, sell, 13, 12.95, -1875
+2025-09-24 15:26:00,411 - Thread-2 (run_user) - INFO - 13, 12.95, 1500
+2025-09-24 15:26:00,411 - Thread-2 (run_user) - INFO - NIFTY25SEP25500CE, sell, 13.95, 12.2, 3450
+2025-09-24 15:26:00,411 - Thread-2 (run_user) - INFO - 13.95, 12.2, 1500
+2025-09-24 15:26:00,411 - Thread-2 (run_user) - INFO - NIFTY25SEP24500PE, sell, 0, 5.95, -7229.999250000001
+2025-09-24 15:26:00,411 - Thread-2 (run_user) - INFO - NIFTY25SEP24600PE, sell, 0, 8.3, 3600.000000000002
+2025-09-24 15:26:00,411 - Thread-2 (run_user) - INFO - NIFTY25SEP24850PE, sell, 0, 27.4, -49582.49849999999
+2025-09-24 15:26:00,411 - Thread-2 (run_user) - INFO - NIFTY25SEP25600CE, sell, 0, 7.3, 31616.25037499999
+2025-09-24 15:26:00,427 - Thread-2 (run_user) - INFO - NIFTY25SEP25950CE, sell, 0, 2.3, -12487.5
+2025-09-24 15:26:00,427 - Thread-2 (run_user) - INFO - Current Profit: 2700.0, Total Profit: -31383.75, Lock Profit: 0, Trail Profit: 4500
+2025-09-24 15:26:00,427 - Thread-2 (run_user) - INFO - -------------------------
+2025-09-24 15:26:00,427 - Thread-2 (run_user) - INFO - Adjustments ...
+2025-09-24 15:26:00,427 - Thread-2 (run_user) - INFO - PE Price: 12.95, CE Price: 12.2
+2025-09-24 15:26:00,427 - Thread-2 (run_user) - INFO - PE: 361.9, Index: 25061.9, CE: 438.1
+2025-09-24 15:26:00,427 - Thread-2 (run_user) - INFO - Strikes Distance: 76.20000000000005
+2025-09-24 15:26:00,427 - Thread-2 (run_user) - INFO - No need of any adjustments.
+2025-09-24 15:26:25,434 - Thread-4 (run_user) - INFO - ####################################################################################################
+2025-09-24 15:26:25,434 - Thread-4 (run_user) - INFO - Started to Watch user: madhu
+2025-09-24 15:26:27,544 - Thread-4 (run_user) - INFO - Received 7 positions, processing them
+2025-09-24 15:26:31,092 - Thread-4 (run_user) - INFO - Received Option Chain ...True
+2025-09-24 15:26:31,107 - Thread-4 (run_user) - INFO - Loaded 2 active positions & 5 closed positions.
+2025-09-24 15:26:31,107 - Thread-4 (run_user) - INFO - Strategy Identified as : strangle
+2025-09-24 15:26:31,107 - Thread-4 (run_user) - INFO - -------------------------
+2025-09-24 15:26:31,107 - Thread-4 (run_user) - INFO - Stop loss check ...

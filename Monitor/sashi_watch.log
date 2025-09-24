@@ -1,0 +1,57 @@
+2025-09-24 15:25:33,973 - Thread-1 (run_user) - INFO - ####################################################################################################
+2025-09-24 15:25:33,973 - Thread-1 (run_user) - INFO - Started to Watch user: sashi
+2025-09-24 15:25:53,538 - Thread-1 (run_user) - INFO - Received 7 positions, processing them
+2025-09-24 15:25:57,004 - Thread-1 (run_user) - INFO - Received Option Chain ...True
+2025-09-24 15:25:57,010 - Thread-1 (run_user) - INFO - Loaded 2 active positions & 5 closed positions.
+2025-09-24 15:25:57,012 - Thread-1 (run_user) - INFO - Strategy Identified as : strangle
+2025-09-24 15:25:57,013 - Thread-1 (run_user) - INFO - -------------------------
+2025-09-24 15:25:57,013 - Thread-1 (run_user) - INFO - Stop loss check ...
+2025-09-24 15:26:00,395 - Thread-1 (run_user) - INFO - Base_factor: 1.2, VIX_factor: 0.9, SL Factor: 1.18
+2025-09-24 15:26:00,395 - Thread-1 (run_user) - INFO - Premium Collected: 29.84, Premium Earned: 25.15, StopLoss Premium: 35.21
+2025-09-24 15:26:00,395 - Thread-1 (run_user) - INFO - -------------------------
+2025-09-24 15:26:00,395 - Thread-1 (run_user) - INFO - Trail profit ...
+2025-09-24 15:26:00,395 - Thread-1 (run_user) - INFO - NIFTY25SEP24700PE, sell, 13, 12.95, -1650
+2025-09-24 15:26:00,395 - Thread-1 (run_user) - INFO - 13, 12.95, 1500
+2025-09-24 15:26:00,395 - Thread-1 (run_user) - INFO - NIFTY25SEP25500CE, sell, 16.841538461538462, 12.2, 5583.75
+2025-09-24 15:26:00,395 - Thread-1 (run_user) - INFO - 16.841538461538462, 12.2, 1500
+2025-09-24 15:26:00,395 - Thread-1 (run_user) - INFO - NIFTY25SEP24500PE, sell, 0, 5.95, -4725
+2025-09-24 15:26:00,395 - Thread-1 (run_user) - INFO - NIFTY25SEP24600PE, sell, 0, 8.3, 3600
+2025-09-24 15:26:00,395 - Thread-1 (run_user) - INFO - NIFTY25SEP24850PE, sell, 0, 27.4, -49196.248500000016
+2025-09-24 15:26:00,395 - Thread-1 (run_user) - INFO - NIFTY25SEP25600CE, sell, 0, 7.3, 30806.249624999997
+2025-09-24 15:26:00,395 - Thread-1 (run_user) - INFO - NIFTY25SEP25950CE, sell, 0, 2.3, -11981.25
+2025-09-24 15:26:00,395 - Thread-1 (run_user) - INFO - Current Profit: 7037.31, Total Profit: -24458.94, Lock Profit: 0, Trail Profit: 4500
+2025-09-24 15:26:00,395 - Thread-1 (run_user) - INFO - Locking the profit: 2537.3100000000004
+2025-09-24 15:26:00,411 - Thread-1 (run_user) - INFO - -------------------------
+2025-09-24 15:26:00,411 - Thread-1 (run_user) - INFO - Adjustments ...
+2025-09-24 15:26:00,411 - Thread-1 (run_user) - INFO - PE Price: 12.95, CE Price: 12.2
+2025-09-24 15:26:00,411 - Thread-1 (run_user) - INFO - PE: 361.9, Index: 25061.9, CE: 438.1
+2025-09-24 15:26:00,411 - Thread-1 (run_user) - INFO - Strikes Distance: 76.20000000000005
+2025-09-24 15:26:00,411 - Thread-1 (run_user) - INFO - No need of any adjustments.
+2025-09-24 15:26:25,434 - Thread-3 (run_user) - INFO - ####################################################################################################
+2025-09-24 15:26:25,434 - Thread-3 (run_user) - INFO - Started to Watch user: sashi
+2025-09-24 15:26:27,547 - Thread-3 (run_user) - INFO - Received 7 positions, processing them
+2025-09-24 15:26:30,982 - Thread-3 (run_user) - INFO - Received Option Chain ...True
+2025-09-24 15:26:30,999 - Thread-3 (run_user) - INFO - Loaded 2 active positions & 5 closed positions.
+2025-09-24 15:26:30,999 - Thread-3 (run_user) - INFO - Strategy Identified as : strangle
+2025-09-24 15:26:30,999 - Thread-3 (run_user) - INFO - -------------------------
+2025-09-24 15:26:30,999 - Thread-3 (run_user) - INFO - Stop loss check ...
+2025-09-24 15:26:34,361 - Thread-3 (run_user) - INFO - Base_factor: 1.2, VIX_factor: 0.9, SL Factor: 1.18
+2025-09-24 15:26:34,363 - Thread-3 (run_user) - INFO - Premium Collected: 29.84, Premium Earned: 25.15, StopLoss Premium: 35.21
+2025-09-24 15:26:34,363 - Thread-3 (run_user) - INFO - -------------------------
+2025-09-24 15:26:34,365 - Thread-3 (run_user) - INFO - Trail profit ...
+2025-09-24 15:26:34,365 - Thread-3 (run_user) - INFO - NIFTY25SEP24700PE, sell, 13, 12.95, -1650
+2025-09-24 15:26:34,367 - Thread-3 (run_user) - INFO - 13, 12.95, 1500
+2025-09-24 15:26:34,368 - Thread-3 (run_user) - INFO - NIFTY25SEP25500CE, sell, 16.841538461538462, 12.2, 5583.75
+2025-09-24 15:26:34,368 - Thread-3 (run_user) - INFO - 16.841538461538462, 12.2, 1500
+2025-09-24 15:26:34,368 - Thread-3 (run_user) - INFO - NIFTY25SEP24500PE, sell, 0, 5.95, -4725
+2025-09-24 15:26:34,370 - Thread-3 (run_user) - INFO - NIFTY25SEP24600PE, sell, 0, 8.3, 3600
+2025-09-24 15:26:34,372 - Thread-3 (run_user) - INFO - NIFTY25SEP24850PE, sell, 0, 27.4, -49196.248500000016
+2025-09-24 15:26:34,372 - Thread-3 (run_user) - INFO - NIFTY25SEP25600CE, sell, 0, 7.3, 30806.249624999997
+2025-09-24 15:26:34,372 - Thread-3 (run_user) - INFO - NIFTY25SEP25950CE, sell, 0, 2.3, -11981.25
+2025-09-24 15:26:34,372 - Thread-3 (run_user) - INFO - Current Profit: 7037.31, Total Profit: -24458.94, Lock Profit: 2537.3100000000004, Trail Profit: 4500
+2025-09-24 15:26:34,372 - Thread-3 (run_user) - INFO - -------------------------
+2025-09-24 15:26:34,372 - Thread-3 (run_user) - INFO - Adjustments ...
+2025-09-24 15:26:34,372 - Thread-3 (run_user) - INFO - PE Price: 12.95, CE Price: 12.2
+2025-09-24 15:26:34,372 - Thread-3 (run_user) - INFO - PE: 363.4, Index: 25063.4, CE: 436.6
+2025-09-24 15:26:34,372 - Thread-3 (run_user) - INFO - Strikes Distance: 73.20000000000005
+2025-09-24 15:26:34,372 - Thread-3 (run_user) - INFO - No need of any adjustments.

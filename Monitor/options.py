@@ -62,12 +62,14 @@ class handle_options:
         self.short_put_symbol = None
         self.short_call_symbol = None
         self.long_call_symbol = None
+        self.strategy = None
         self.short_put_entry = 0
         self.short_call_entry = 0
         self.long_put_price = 0
         self.short_put_price = 0
         self.short_call_price = 0
         self.long_call_price = 0
+        self.current_price = 0
         self.total_premium_collected = 0
         self.total_premium_earned = 0
         with open("config.yaml", "r") as file:
@@ -109,9 +111,9 @@ class handle_options:
             for position in positions_list:
                 position_to_save = {}
                 position_to_save['symbol'] = position['tradingsymbol']
-                position_to_save['transtype'] = 'buy' if position['buy_quantity'] > 0 else 'sell'
+                position_to_save['transtype'] = 'buy' if position['quantity'] > 0 else 'sell'
                 position_to_save['transprice'] = position['average_price']
-                position_to_save['quantity'] = position['buy_quantity'] if position['buy_quantity'] > 0 else position['sell_quantity']
+                position_to_save['quantity'] = abs(position['quantity'])
                 position_to_save['pnl'] = position['pnl']
                 #####Get Option latest price ################
                 position_to_save['last_price'] = position['last_price']
@@ -130,11 +132,12 @@ class handle_options:
                     if option_type in item:
                         #self.logger.info(f"{item['strikePrice']} : {item['expiryDate']} : {option_type} : {item.get(option_type).get('lastPrice')}")
                         if item["strikePrice"] == int(strike) and item["expiryDate"] == expiry.strftime("%d-%b-%Y"):
-                            self.logger.info(f"Got the last price for {position_to_save['symbol']}: {item.get(option_type).get('lastPrice')}")
+                            #self.logger.info(f"Got the last price for {position_to_save['symbol']}: {item.get(option_type).get('lastPrice')}")
                             position_to_save['last_price'] = item.get(option_type).get('lastPrice')
                             break
                 ####Get Option latest price ################
                 if position['quantity'] == 0:
+                    #self.logger.info(position)
                     self.closed_positions.append(position_to_save)
                     continue
                 else:
@@ -160,20 +163,32 @@ class handle_options:
                         self.short_call_symbol = position_to_save['symbol']
                         self.short_call_entry = position_to_save['transprice']
                         self.short_call_price = position_to_save['last_price']
-            self.logger.info(f"Loaded {len(self.positions)} active positions & {len(self.closed_positions)} closed positions.")
-
-    def get_pnl(self):
-        pnl=0
-        for position in self.positions:
-            self.logger.info(f"{position['symbol']}, {position['transtype']}, {position['transprice']}, {position['last_price']}")
-            if position['transtype'] == 'buy':
-                pnl += (position['last_price'] - position['transprice']) * position['quantity']
+            #print(f"Positions: {len(self.positions)} , Closed Positions: {len(self.closed_positions)},  {self.short_put_symbol} : {self.short_call_symbol}")
+            if len(self.positions) == 2 and self.short_put_symbol and self.short_call_symbol:
+                self.strategy = 'strangle'
+            elif len(self.positions) == 4 and self.long_put_symbol and self.long_call_symbol:
+                self.strategy = 'ironcondor'
             else:
-                pnl += (position['transprice'] - position['last_price']) * position['quantity']
+                self.strategy = None
+            self.logger.info(f"Loaded {len(self.positions)} active positions & {len(self.closed_positions)} closed positions.")
+            self.logger.info(f"Strategy Identified as : {self.strategy}")
+
+    def get_pnl(self, positions):
+        pnl=0
+        for position in positions:
+            self.logger.info(f"{position['symbol']}, {position['transtype']}, {position['transprice']}, {position['last_price']}, {position['pnl']}")
+            if position['transprice'] == 0:
+                pnl += position['pnl']
+            else:
+                if position['transtype'] == 'buy':
+                    pnl += (position['last_price'] - position['transprice']) * position['quantity']
+                else:
+                    pnl += (position['transprice'] - position['last_price']) * position['quantity']
+                    self.logger.info(f"{position['transprice']}, {position['last_price']}, {position['quantity']}")
         return round(pnl, 2)
 
     def check_stop_loss(self):
-        underlying, expiry, long_call_strike, option_type = split_symbol(self.long_call_symbol)
+        underlying, expiry, short_call_strike, option_type = split_symbol(self.short_call_symbol)
         dte = (expiry.date() - date.today()).days
         base_factor = 1.0
         if dte > 20:
@@ -187,12 +202,15 @@ class handle_options:
         else:
             base_factor = 1.0
 
-        url = f"{self.api_url}/get_current_price?symbol=india vix"
+        stock_data = vix_value = None
+        url = f"{self.api_url}/get_current_price?symbol=india vix&request_type=stock"
         response = requests.get(url)
         if response.json()[0]:
-            vix_value = response.json()[1]
-            self.logger.info(f"Got the VIX: {vix_value}")
-        else:
+            stock_data = response.json()[1]
+            for idx in stock_data["data"]:
+                if idx["index"].lower() == 'india vix':
+                    vix_value = float(idx["last"])
+        if not vix_value:
             self.logger.info(f"Failed to get the VIX. Using default value")
             vix_value = 12
 
@@ -219,26 +237,34 @@ class handle_options:
         self.logger.info(f"Premium Collected: {round(self.total_premium_collected,2)}, Premium Earned: {round(self.total_premium_earned,2)}, StopLoss Premium: {round(sl_premium,2)}")
 
         nearing_strike = False
-        underlying, expiry, long_call_strike, option_type = split_symbol(self.long_call_symbol)
         underlying, expiry, short_call_strike, option_type = split_symbol(self.short_call_symbol)
         underlying, expiry, short_put_strike, option_type = split_symbol(self.short_put_symbol)
-        underlying, expiry, long_put_strike, option_type = split_symbol(self.long_put_symbol)
 
         if underlying == 'NIFTY':
-            url = f"{self.api_url}/get_current_price?symbol=nifty 50"
+            stock = 'nifty 50'
         elif underlying == 'BANKNIFTY':
-            url = f"{self.api_url}/get_current_price?symbol=nifty bank"
+            stock = 'nifty bank'
         else:
-            url = f"{self.api_url}/get_current_price?symbol={underlying}"
-        response = requests.get(url)
-        if response.json()[0]:
-            current_price = response.json()[1]
-            self.logger.info(f"Got the Index price {current_price}")
-        else:
-            current_price = round((int(short_put_strike) + int(short_call_strike))/2,2)
-            self.logger.info(f"Failed to get the Index price. Using default: {current_price}")
+            stock = underlying
 
-        if current_price <= int(short_put_strike) + 200 or current_price >= int(short_call_strike) - 200:
+        self.current_price = None
+        if stock_data:
+            for idx in stock_data["data"]:
+                if idx["index"].lower() == stock.lower():
+                    self.current_price = float(idx["last"])
+        else:
+            url = f"{self.api_url}/get_current_price?symbol={stock}&request_type=stock"
+            response = requests.get(url)
+            if response.json()[0]:
+                self.current_price = response.json()[1]
+                self.logger.info(f"Got the Index price {self.current_price}")
+
+        if not self.current_price:
+            self.current_price = round((int(short_put_strike) + int(short_call_strike))/2,2)
+            self.logger.info(f"Failed to get the Index price. Using default: {self.current_price}")
+
+
+        if self.current_price <= int(short_put_strike) + 300 or self.current_price >= int(short_call_strike) - 300:
             nearing_strike = True
 
         if stop_loss_hit or nearing_strike:
@@ -255,19 +281,20 @@ class handle_options:
         return False
 
     def trail_profit(self):
-        pnl = self.get_pnl()
+        pnl = self.get_pnl(self.positions)
+        closed_pnl = self.get_pnl(self.closed_positions)
         trail_profit = round(self.quantity * self.config['trailing_profit_multiplier'],2)
-        self.logger.info(f"Current Profit: {pnl}, Lock Profit: {self.lock_profit}, Trail Profit: {trail_profit}")
+        self.logger.info(f"Current Profit: {pnl}, Total Profit: {pnl+closed_pnl}, Lock Profit: {self.lock_profit}, Trail Profit: {trail_profit}")
         if pnl <= self.lock_profit and self.lock_profit > 0:
             self.trail_profit_hit_count += 1
             self.logger.info(f"Trailing profit is hit count: {self.trail_profit_hit_count}")
 
             if self.trail_profit_hit_count > self.config['trail_profit_threshold']:
                 self.logger.info(f"Closing the positions")
-                underlying, expiry, long_call_strike, option_type = split_symbol(self.long_call_symbol)
-                underlying, expiry, short_call_strike, option_type = split_symbol(self.short_call_symbol)
-                underlying, expiry, short_put_strike, option_type = split_symbol(self.short_put_symbol)
-                underlying, expiry, long_put_strike, option_type = split_symbol(self.long_put_symbol)
+                #underlying, expiry, long_call_strike, option_type = split_symbol(self.long_call_symbol)
+                #underlying, expiry, short_call_strike, option_type = split_symbol(self.short_call_symbol)
+                #underlying, expiry, short_put_strike, option_type = split_symbol(self.short_put_symbol)
+                #underlying, expiry, long_put_strike, option_type = split_symbol(self.long_put_symbol)
                 try:
                     pass
                     #self.place_order(short_call_strike, self.quantity, "BUY")
@@ -284,13 +311,24 @@ class handle_options:
         return False
     def adjustments(self):
     #
-        underlying, expiry, long_put_strike, option_type = split_symbol(self.long_put_symbol)
-        underlying, expiry, short_put_strike, option_type = split_symbol(self.short_put_symbol)
-        underlying, expiry, short_call_strike, option_type = split_symbol(self.short_call_symbol)
-        underlying, expiry, long_call_strike, option_type = split_symbol(self.long_call_symbol)
-
+        if self.strategy in ('strangle', 'ironcondor'):
+            underlying, expiry, short_put_strike, option_type = split_symbol(self.short_put_symbol)
+            underlying, expiry, short_call_strike, option_type = split_symbol(self.short_call_symbol)
+        elif self.strategy in ('ironcondor'):
+            underlying, expiry, long_put_strike, option_type = split_symbol(self.long_put_symbol)
+            underlying, expiry, long_call_strike, option_type = split_symbol(self.long_call_symbol)
+        else:
+            return False
+    #
         if self.short_call_price > 0 and self.short_put_price > 0:
             self.logger.info(f"PE Price: {self.short_put_price}, CE Price: {self.short_call_price}")
+            PE_distance = round(self.current_price - int(short_put_strike), 2)
+            CE_distance = round(int(short_call_strike) - self.current_price, 2)
+            self.logger.info(f"PE: {PE_distance}, Index: {self.current_price}, CE: {CE_distance}")
+            strikes_distance = abs(PE_distance - CE_distance)
+            self.logger.info(f"Strikes Distance: {strikes_distance}")
+            if strikes_distance >= 100:
+                self.logger.info(f"Strike are imbalnce. Might need to adjust soon")
             if self.short_call_price <= self.short_put_price * 55/100:
                 self.logger.info(f"Market is going down. Adjustment is needed on CE side")
                 self.logger.info(f"Buying {self.short_call_symbol} & Selling {underlying}{int(short_call_strike)-50}CE")
@@ -300,7 +338,8 @@ class handle_options:
                 self.place_order(symbol=self.short_call_symbol.replace(short_call_strike, str(int(short_call_strike)-50)),
                                  quantity=self.quantity,
                                  transaction_type="SELL")
-                self.logger.info(f"Need to sell {self.long_call_symbol} & Need to buy {underlying}{int(long_call_strike)-50}CE")
+                if self.strategy == 'ironcondor':
+                    self.logger.info(f"Need to sell {self.long_call_symbol} & Need to buy {underlying}{int(long_call_strike)-50}CE")
             elif self.short_put_price <= self.short_call_price * 55/100:
                 self.logger.info(f"Market is going up. Adjustment is needed on PE side")
                 self.logger.info(f"Buying {self.short_put_symbol} & Selling {underlying}{int(short_put_strike)+50}PE")
@@ -310,7 +349,8 @@ class handle_options:
                 self.place_order(symbol=self.short_put_symbol.replace(short_put_strike, str(int(short_put_strike)+50)),
                                  quantity=self.quantity,
                                  transaction_type="SELL")
-                self.logger.info(f"Need to sell {self.long_put_symbol} & Need to buy {underlying}{int(long_put_strike)+50}PE")
+                if self.strategy == 'ironcondor':
+                    self.logger.info(f"Need to sell {self.long_put_symbol} & Need to buy {underlying}{int(long_put_strike)+50}PE")
             else:
                 self.logger.info(f"No need of any adjustments.")
         else:
@@ -327,17 +367,17 @@ class handle_options:
         self.logger.info("#" * 100)
         if self.watch():
             self.process_positions()
-            if len(self.positions) == 4:
+            if len(self.positions) >= 2:
                 self.logger.info("-" * 25)
-                self.logger.info("Got the positions. Proceeding for stop loss")
+                self.logger.info("Stop loss check ...")
                 closed = self.check_stop_loss()
                 if not closed:
                     self.logger.info("-" * 25)
-                    self.logger.info("Stop loss is verified. Proceeding to trail profit")
+                    self.logger.info("Trail profit ...")
                     closed = self.trail_profit()
                     if not closed:
                         self.logger.info("-" * 25)
-                        self.logger.info("Trail Profit is done. Proceeding to check adjustments")
+                        self.logger.info("Adjustments ...")
                         self.adjustments()
             time.sleep(self.config.get('delay'))
 
