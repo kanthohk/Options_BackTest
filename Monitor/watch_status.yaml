@@ -1,0 +1,20 @@
+sashi:
+  time:
+  Strategy:
+  markets:
+      NIFTY50:
+      NIFTYBANK:
+      INDIAVIX:
+      PCR:
+      NiftyAdvances:
+      NiftyDeclines:
+  Options:
+      OptionType:
+      TransType:
+      Strike:
+      BuyPrice:
+      LastPrice:
+      StrikesDistance:
+  PNL:
+      ActivePnL:
+      TotalPnL:

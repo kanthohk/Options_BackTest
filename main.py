@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify
 import yaml
 from TradingBroker.kite_api_bot import KITE_CONNECT
-from MarketAnalysis.fetch_data import get_ltp, get_option_chain
+from MarketAnalysis.fetch_data import get_ltp #, get_option_chain
 # Create Flask app
 app = Flask(__name__)
 broker_connections = {}
@@ -73,6 +73,9 @@ def get_positions():
 @app.route("/watch_positions", methods=["GET"])
 def watch_positions():
     user = request.args.get("user")
+    adjustments = (True if request.args.get("adjustments").upper() == 'Y' else False) if request.args.get("adjustments") else False
+    stoploss = (True if request.args.get("stoploss").upper() == 'Y' else False) if request.args.get("stoploss") else False
+    trailprofit = (True if request.args.get("trailprofit").upper() == 'Y' else False) if request.args.get("trailprofit") else False
     watch = {}
     if user:
         with open("Monitor/watch_sync.yaml", "r") as file:
@@ -80,7 +83,7 @@ def watch_positions():
             if not watch:
                 watch = {}
         with open("Monitor/watch_sync.yaml", "w") as file:
-            watch[user] = {"type": "options"}
+            watch[user] = {"adjustments": adjustments, "stoploss": stoploss, "trailprofit": trailprofit}
             yaml.dump(watch, file, default_flow_style=False, sort_keys=False)
     else:
         return [False, f"Please provide the user to watch"]
@@ -109,6 +112,7 @@ def get_current_price():
     else:
         return [False, None]
 
+'''
 @app.route("/get_optionchain", methods=["GET"])
 def get_optionchain():
     symbol = request.args.get("symbol")
@@ -117,7 +121,7 @@ def get_optionchain():
         return [True, op_chain]
     else:
         return [False, None]
-
+'''
 @app.route("/place_order", methods=["GET"])
 def place_order():
     user = request.args.get("user")

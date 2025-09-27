@@ -1,6 +1,29 @@
 import requests
 import time
+'''
+Option Chain 
+    (Indices) 
+        https://www.nseindia.com/api/option-chain-indices?symbol=NIFTY
+        https://www.nseindia.com/api/option-chain-indices?symbol=BANKNIFTY   
+    (Stocks) 
+        https://www.nseindia.com/api/option-chain-equities?symbol=RELIANCE 
 
+Index Quotes 
+    (Nifty, BankNifty, India VIX, etc.) 
+    https://www.nseindia.com/api/quote-derivative?symbol=NIFTY
+    https://www.nseindia.com/api/quote-index?symbol=NIFTY 50
+    https://www.nseindia.com/api/quote-index?symbol=INDIA VIX 
+    https://www.nseindia.com/api/quote-equity?symbol=RELIANCE
+    
+Stock Quotes
+    https://www.nseindia.com/api/equity-stockIndices?index=NIFTY%2050
+    https://www.nseindia.com/api/equity-stockIndices?index=NIFTY%20NEXT%2050
+
+All Indices Snapshot 
+    https://www.nseindia.com/api/allIndices   
+    
+    
+'''
 
 def get_ltp(symbol, request_type='stock', max_retries=5, delay=1):
     headers = {
@@ -37,35 +60,3 @@ def get_ltp(symbol, request_type='stock', max_retries=5, delay=1):
     print(f"Failed to fetch {symbol} after retries.")
     return None
 
-
-# Example usage
-#symbol = "india vix"
-#price = get_ltp(symbol)
-#print(f"{symbol}: {price}")
-
-def get_option_chain(symbol='NIFTY'):
-    headers = {
-        "User-Agent": "Mozilla/5.0",
-        "Referer": "https://www.nseindia.com/option-chain",
-        "Accept-Language": "en-US,en;q=0.9"
-    }
-    session = requests.Session()
-
-    # Hit NSE homepage to get cookies
-    session.get("https://www.nseindia.com", headers=headers, timeout=5)
-    time.sleep(0.5)
-
-    url = f"https://www.nseindia.com/api/option-chain-indices?symbol={symbol}"
-    resp = session.get(url, headers=headers, timeout=5)
-    if resp.status_code != 200:
-        print("Failed:", resp.status_code)
-        return None
-
-    data = resp.json()
-    return data
-
-#option_chain = get_option_chain()
-#if option_chain:
-#    for ce in option_chain["records"]["data"]:
-#        if "CE" in ce:
-#            print(ce["CE"]["strikePrice"], ce["CE"]["lastPrice"])

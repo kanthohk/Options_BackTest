@@ -33,9 +33,16 @@ def split_symbol(symbol):
     else:
         # Weekly expiry e.g. NIFTY2592324900PE
         date_part = middle[:-5] # assuming strike is 5 digit
-        yy = int(date_part[-2:])
-        mm = int(date_part[2:-2]) if len(date_part[2:-2]) > 0 else 1
-        dd = int(date_part[:2])
+        mm = date_part[2:-2] if len(date_part[2:-2]) > 0 else 1
+        if mm.isdigit():
+            yy = int(date_part[-2:])
+            mm = int(mm)
+            dd = int(date_part[:2])
+        else:
+            yy = int(date_part[:2])
+            mm_conv = {'O': 10, 'N' : 11, 'D': 12}
+            mm = mm_conv[mm]
+            dd = int(date_part[-2:])
         strike = int(middle[-5:])
         expiry_dt = datetime(2000+yy, mm, dd)
     return underlying, expiry_dt, strike, opt_type
@@ -51,6 +58,9 @@ class SyncFileHandler(logging.FileHandler):
 class handle_options:
     def __init__(self, user):
         self.user = user
+        self.place_adjustments = False
+        self.place_stoploss = False
+        self.place_trailprofit = False
         self.logger = self._setup_logger()
         self.api_url = "http://localhost:5000"
         self.lock_profit = 0
@@ -91,12 +101,14 @@ class handle_options:
     def watch(self):
         with open("watch_sync.yaml", "r") as file:
             watch_sync = yaml.safe_load(file)
+        watch_params = {}
         should_watch = self.user in watch_sync
         if should_watch:
             self.logger.info(f"Started to Watch user: {self.user}")
+            watch_params = watch_sync[user]
         else:
             self.logger.info(f"Not watching the user: {self.user}. Record not found in watch_sync.yaml")
-        return should_watch
+        return should_watch, watch_params
     def process_positions(self):
         url = f"{self.api_url}/get_positions?user={self.user}"
         self.positions = []
@@ -106,7 +118,7 @@ class handle_options:
         success = response.json()[0]
         if success:
             positions_list = response.json()[1][self.user]
-            self.logger.info(f"Received {len(positions_list)} positions, processing them")
+            #self.logger.info(f"Received {len(positions_list)} positions, processing them")
             option_chain = []
             for position in positions_list:
                 position_to_save = {}
@@ -118,11 +130,12 @@ class handle_options:
                 #####Get Option latest price ################
                 position_to_save['last_price'] = position['last_price']
                 underlying, expiry, strike, option_type = split_symbol(position_to_save['symbol'])
+
                 if len(option_chain) == 0:
                     url = f"{self.api_url}/get_current_price?symbol={underlying}&request_type=option"
                     response = requests.get(url)
                     if response.json()[0]:
-                        self.logger.info(f"Received Option Chain ...{response.json()[0]}")
+                        #self.logger.info(f"Received Option Chain ...{response.json()[0]}")
                         option_chain = response.json()[1]['records']['data']
                     else:
                         self.logger.info(f"Failed to get Option Chain ...")
@@ -176,7 +189,6 @@ class handle_options:
     def get_pnl(self, positions):
         pnl=0
         for position in positions:
-            self.logger.info(f"{position['symbol']}, {position['transtype']}, {position['transprice']}, {position['last_price']}, {position['pnl']}")
             if position['transprice'] == 0:
                 pnl += position['pnl']
             else:
@@ -184,23 +196,21 @@ class handle_options:
                     pnl += (position['last_price'] - position['transprice']) * position['quantity']
                 else:
                     pnl += (position['transprice'] - position['last_price']) * position['quantity']
-                    self.logger.info(f"{position['transprice']}, {position['last_price']}, {position['quantity']}")
         return round(pnl, 2)
 
     def check_stop_loss(self):
         underlying, expiry, short_call_strike, option_type = split_symbol(self.short_call_symbol)
         dte = (expiry.date() - date.today()).days
-        base_factor = 1.0
         if dte > 20:
-            base_factor = 1.5
+            base_factor = 1.8
         elif 15 < dte <= 20:
-            base_factor = 1.4
+            base_factor = 1.7
         elif 10 < dte <= 15:
-            base_factor = 1.3
+            base_factor = 1.6
         elif 5 < dte <= 10:
-            base_factor = 1.2
+            base_factor = 1.5
         else:
-            base_factor = 1.0
+            base_factor = 1.4
 
         stock_data = vix_value = None
         url = f"{self.api_url}/get_current_price?symbol=india vix&request_type=stock"
@@ -228,13 +238,15 @@ class handle_options:
         else:
             vix_factor = 2
 
-        sl_factor = 1 + (base_factor - 1) * vix_factor
+        sl_factor = round(1 + (base_factor - 1) * vix_factor,2)
         stop_loss_hit = False
         sl_premium = self.total_premium_collected * sl_factor
         if self.total_premium_earned >= sl_premium:
             stop_loss_hit = True
         self.logger.info(f"Base_factor: {base_factor}, VIX_factor: {vix_factor}, SL Factor: {sl_factor}")
-        self.logger.info(f"Premium Collected: {round(self.total_premium_collected,2)}, Premium Earned: {round(self.total_premium_earned,2)}, StopLoss Premium: {round(sl_premium,2)}")
+        self.logger.info(f"\t\t\tPremium Collected: {round(self.total_premium_collected,2)}")
+        self.logger.info(f"\t\t\tPremium Earned: {round(self.total_premium_earned,2)}")
+        self.logger.info(f"\t\t\tStopLoss Premium: {round(sl_premium,2)}")
 
         nearing_strike = False
         underlying, expiry, short_call_strike, option_type = split_symbol(self.short_call_symbol)
@@ -269,42 +281,50 @@ class handle_options:
 
         if stop_loss_hit or nearing_strike:
             self.logger.info(f"### Close the strikes as Stop Loss Hit is {stop_loss_hit} and Nifty reaching the strikes is {nearing_strike} ###")
-            try:
-                pass
-                #self.place_order(short_call_strike, self.quantity, "BUY")
-                #self.place_order(short_put_strike, self.quantity, "BUY")
-                #self.place_order(long_call_strike, self.quantity, "SELL")
-                #self.place_order(long_put_strike, self.quantity, "SELL")
-                #return True
-            except Exception as e:
-                self.logger.error(f"Failed to close the Iron Condor: {e}")
+            if self.place_stoploss:
+                self.logger.info(f"### Closing the strikes as Stop Loss Hit")
+                try:
+                    self.place_order(short_call_strike, self.quantity, "BUY")
+                    self.place_order(short_put_strike, self.quantity, "BUY")
+                    self.place_order(long_call_strike, self.quantity, "SELL")
+                    self.place_order(long_put_strike, self.quantity, "SELL")
+                    return True
+                except Exception as e:
+                    self.logger.error(f"Failed to close the Iron Condor: {e}")
+            else:
+                self.logger.info("Profit Trail orders are not set to execute in watch_sync.yaml")
         return False
 
     def trail_profit(self):
         pnl = self.get_pnl(self.positions)
         closed_pnl = self.get_pnl(self.closed_positions)
         trail_profit = round(self.quantity * self.config['trailing_profit_multiplier'],2)
-        self.logger.info(f"Current Profit: {pnl}, Total Profit: {pnl+closed_pnl}, Lock Profit: {self.lock_profit}, Trail Profit: {trail_profit}")
+        self.logger.info(f"\t\t\tCurrent Profit: {pnl}")
+        self.logger.info(f"\t\t\tTotal Profit: {pnl+closed_pnl}")
+        self.logger.info(f"\t\t\tLock Profit: {self.lock_profit}")
+        self.logger.info(f"\t\t\tTrail Profit: {trail_profit}")
         if pnl <= self.lock_profit and self.lock_profit > 0:
             self.trail_profit_hit_count += 1
             self.logger.info(f"Trailing profit is hit count: {self.trail_profit_hit_count}")
 
             if self.trail_profit_hit_count > self.config['trail_profit_threshold']:
-                self.logger.info(f"Closing the positions")
-                #underlying, expiry, long_call_strike, option_type = split_symbol(self.long_call_symbol)
-                #underlying, expiry, short_call_strike, option_type = split_symbol(self.short_call_symbol)
-                #underlying, expiry, short_put_strike, option_type = split_symbol(self.short_put_symbol)
-                #underlying, expiry, long_put_strike, option_type = split_symbol(self.long_put_symbol)
-                try:
-                    pass
-                    #self.place_order(short_call_strike, self.quantity, "BUY")
-                    #self.place_order(short_put_strike, self.quantity, "BUY")
-                    #self.place_order(long_call_strike, self.quantity, "SELL")
-                    #self.place_order(long_put_strike, self.quantity, "SELL")
-                    #return True
-                except Exception as e:
-                    self.logger.info(f"Failed to close the Iron Condor: {e}")
-
+                self.logger.info("Should close the positions")
+                if self.place_trailprofit:
+                    self.logger.info(f"Closing the positions")
+                    underlying, expiry, long_call_strike, option_type = split_symbol(self.long_call_symbol)
+                    underlying, expiry, short_call_strike, option_type = split_symbol(self.short_call_symbol)
+                    underlying, expiry, short_put_strike, option_type = split_symbol(self.short_put_symbol)
+                    underlying, expiry, long_put_strike, option_type = split_symbol(self.long_put_symbol)
+                    try:
+                        self.place_order(short_call_strike, self.quantity, "BUY")
+                        self.place_order(short_put_strike, self.quantity, "BUY")
+                        self.place_order(long_call_strike, self.quantity, "SELL")
+                        self.place_order(long_put_strike, self.quantity, "SELL")
+                        return True
+                    except Exception as e:
+                        self.logger.info(f"Failed to close the Iron Condor: {e}")
+                else:
+                    self.logger.info("Profit Trail orders are not set to execute in watch_sync.yaml")
         if pnl >= (self.lock_profit + trail_profit + 500):
             self.lock_profit = pnl - trail_profit
             self.logger.info(f"Locking the profit: {self.lock_profit}")
@@ -324,31 +344,40 @@ class handle_options:
             self.logger.info(f"PE Price: {self.short_put_price}, CE Price: {self.short_call_price}")
             PE_distance = round(self.current_price - int(short_put_strike), 2)
             CE_distance = round(int(short_call_strike) - self.current_price, 2)
-            self.logger.info(f"PE: {PE_distance}, Index: {self.current_price}, CE: {CE_distance}")
-            strikes_distance = abs(PE_distance - CE_distance)
+            self.logger.info(f"\t\t\tPE: {PE_distance} <<<< {self.current_price} >>>>  {CE_distance} : CE")
+            strikes_distance = round(abs(PE_distance - CE_distance),2)
             self.logger.info(f"Strikes Distance: {strikes_distance}")
             if strikes_distance >= 100:
                 self.logger.info(f"Strike are imbalnce. Might need to adjust soon")
-            if self.short_call_price <= self.short_put_price * 55/100:
+            if self.short_call_price <= self.short_put_price * 50/100:
                 self.logger.info(f"Market is going down. Adjustment is needed on CE side")
-                self.logger.info(f"Buying {self.short_call_symbol} & Selling {underlying}{int(short_call_strike)-50}CE")
-                self.place_order(symbol=self.short_call_symbol,
-                                 quantity=self.quantity,
-                                 transaction_type="BUY")
-                self.place_order(symbol=self.short_call_symbol.replace(short_call_strike, str(int(short_call_strike)-50)),
-                                 quantity=self.quantity,
-                                 transaction_type="SELL")
+                if self.place_adjustments:
+                    self.logger.info(
+                        f"Buying {self.short_call_symbol} & Selling {underlying}{int(short_call_strike) - 50}CE")
+
+                    self.place_order(symbol=self.short_call_symbol,
+                                     quantity=self.quantity,
+                                     transaction_type="BUY")
+                    self.place_order(symbol=self.short_call_symbol.replace(short_call_strike, str(int(short_call_strike)-50)),
+                                     quantity=self.quantity,
+                                     transaction_type="SELL")
+                else:
+                    self.logger.info("Adjustment orders are not set to execute in watch_sync.yaml")
                 if self.strategy == 'ironcondor':
                     self.logger.info(f"Need to sell {self.long_call_symbol} & Need to buy {underlying}{int(long_call_strike)-50}CE")
             elif self.short_put_price <= self.short_call_price * 55/100:
                 self.logger.info(f"Market is going up. Adjustment is needed on PE side")
-                self.logger.info(f"Buying {self.short_put_symbol} & Selling {underlying}{int(short_put_strike)+50}PE")
-                self.place_order(symbol=self.short_put_symbol,
-                                 quantity=self.quantity,
-                                 transaction_type="BUY")
-                self.place_order(symbol=self.short_put_symbol.replace(short_put_strike, str(int(short_put_strike)+50)),
-                                 quantity=self.quantity,
-                                 transaction_type="SELL")
+                if self.place_adjustments:
+                    self.logger.info(
+                        f"Buying {self.short_put_symbol} & Selling {underlying}{int(short_put_strike) + 50}PE")
+                    self.place_order(symbol=self.short_put_symbol,
+                                     quantity=self.quantity,
+                                     transaction_type="BUY")
+                    self.place_order(symbol=self.short_put_symbol.replace(short_put_strike, str(int(short_put_strike)+50)),
+                                     quantity=self.quantity,
+                                     transaction_type="SELL")
+                else:
+                    self.logger.info("Adjustment orders are not set to execute in watch_sync.yaml")
                 if self.strategy == 'ironcondor':
                     self.logger.info(f"Need to sell {self.long_put_symbol} & Need to buy {underlying}{int(long_put_strike)+50}PE")
             else:
@@ -365,7 +394,11 @@ class handle_options:
 
     def run(self):
         self.logger.info("#" * 100)
-        if self.watch():
+        should_watch, watch_params = self.watch()
+        if should_watch:
+            self.place_adjustments = watch_params['adjustments']
+            self.place_stoploss = watch_params['stoploss']
+            self.place_trailprofit = watch_params['trailprofit']
             self.process_positions()
             if len(self.positions) >= 2:
                 self.logger.info("-" * 25)
@@ -417,7 +450,7 @@ if __name__ == "__main__":
             for t in threads:
                 t.join()
         # Sleep before next iteration (to avoid hammering file + APIs)
-        time.sleep(20)
+        time.sleep(60)
 '''
     handle_objs = {}
     while True:

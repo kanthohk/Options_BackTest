@@ -1,0 +1,20 @@
+INFO:KITE_CONNECT:logger created
+INFO:KITE_CONNECT:logger created
+INFO:KITE_CONNECT:Got Credentials: {'api_key': 'f9dtnoqozzcg5a51', 'secret_key': 'dz6a70kj5gdvo84k16gexspsgwyo159e', 'username': 'OL5402', 'password': 'Arepalli123$', 'authenticator_token': '7YIPADTOYPGO3R2LFL3ZKNSPNVJWNEH7'}
+INFO:KITE_CONNECT:Got Credentials: {'api_key': 'erenpd2psfhkugz4', 'secret_key': 'flhvf7rd4pa3jqhq9g5gsbbj4rny83fi', 'username': 'HOZ563', 'password': 'Skanth123$', 'authenticator_token': 'GZZ3XZFJQBEUSY63RXH4SLCPZQZB5XEB'}
+INFO:KITE_CONNECT:20250925 11:15:32: URL generated: https://kite.zerodha.com/connect/login?api_key=f9dtnoqozzcg5a51&v=3
+INFO:KITE_CONNECT:20250925 11:15:32: URL generated: https://kite.zerodha.com/connect/login?api_key=erenpd2psfhkugz4&v=3
+INFO:KITE_CONNECT:20250925 11:15:32: Got into auto login
+INFO:KITE_CONNECT:20250925 11:15:32: Got into auto login
+INFO:KITE_CONNECT:20250925 11:15:38: URL Received: https://127.0.0.1/?action=login&type=login&status=success&request_token=a5kccEwaKSzSP2MEFwSfNiN6uwTEtUxl
+INFO:KITE_CONNECT:20250925 11:15:38: URL Received: https://127.0.0.1/?type=login&status=success&request_token=aFdsALsPBZFgIQH1TVW7FJGE4uT7n2F0&action=login
+INFO:KITE_CONNECT:20250925 11:15:51: Token received for API key : a5kccEwaKSzSP2MEFwSfNiN6uwTEtUxl
+INFO:KITE_CONNECT:20250925 11:15:52: Session Connected Access token: 8t4Uv9WRKaghBucQjydu0Ot4xwhgjtFX
+INFO:werkzeug:127.0.0.1 - - [25/Sep/2025 11:15:52] "GET /get_positions?user=madhu HTTP/1.1" 200 -
+INFO:KITE_CONNECT:20250925 11:15:52: Token received for API key : aFdsALsPBZFgIQH1TVW7FJGE4uT7n2F0
+INFO:KITE_CONNECT:20250925 11:15:52: Session Connected Access token: e2FmBcypQ0DOm7fLAZ3DbPLG821irohn
+INFO:werkzeug:127.0.0.1 - - [25/Sep/2025 11:15:52] "GET /get_positions?user=sashi HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [25/Sep/2025 11:15:55] "GET /get_current_price?symbol=NIFTY&request_type=option HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [25/Sep/2025 11:15:55] "GET /get_current_price?symbol=NIFTY&request_type=option HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [25/Sep/2025 11:15:59] "GET /get_current_price?symbol=india%20vix&request_type=stock HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [25/Sep/2025 11:15:59] "GET /get_current_price?symbol=india%20vix&request_type=stock HTTP/1.1" 200 -

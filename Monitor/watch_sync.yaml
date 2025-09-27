@@ -1,4 +1,8 @@
 sashi:
-  type: options
+  adjustments: false
+  stoploss: false
+  trailprofit: false
 madhu:
-  type: options
+  adjustments: false
+  stoploss: false
+  trailprofit: false
